@@ -10,7 +10,7 @@ app.post("/api/oauth-token", (req: Request, res: Response) => {
 });
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Works good");
+  res.send("Works good and running!");
 });
 
 app.listen(port, () => {
