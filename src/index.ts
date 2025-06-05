@@ -2,7 +2,9 @@ import express, { Request, Response } from "express";
 
 const app = express();
 const port = process.env.PORT || 3001;
+const cors = require("cors");
 
+app.use(cors());
 app.use(express.json());
 
 app.post("/api/oauth-token", (req: Request, res: Response) => {
