@@ -9,25 +9,32 @@ const cors = require("cors");
 app.use(cors());
 app.use(express.json());
 
-app.post("/api/oauth-token", (req: Request, res: Response) => {
-  let { code } = req.body;
-  const token = getAccessToken(code);
-  res.status(200).send("Token received: " + token);
+app.post("/api/oauth-token", async (req: Request, res: Response) => {
+  try {
+    let { code } = req.body;
+    const token = await getAccessToken(code);
+    res.status(200).json({ access_token: token });
+  } catch (error) {
+    console.error("OAuth error:", error);
+    res.status(500).json({ error: "Failed to obtain access token" });
+  }
 });
 
 async function getAccessToken(code: string) {
-  const res = await axios.get("https://github.com/login/oauth/access_token", {
-    params: {
+  const res = await axios.post(
+    "https://github.com/login/oauth/access_token",
+    {
       client_id: process.env.GITHUB_CLIENT_ID,
       client_secret: process.env.GITHUB_CLIENT_SECRET,
       code: code,
       redirect_uri: `http://localhost:3000/integrations/github/oauth2/callback`,
     },
-    headers: {
-      Accept: "application/json",
-      "Accept-Encoding": "application/json",
-    },
-  });
+    {
+      headers: {
+        Accept: "application/json",
+      },
+    }
+  );
 
   return res.data.access_token;
 }
