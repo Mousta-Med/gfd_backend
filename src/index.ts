@@ -1,6 +1,5 @@
 import express, { Request, Response } from "express";
 import axios from "axios";
-import { get } from "http";
 import dotenv from "dotenv";
 
 // Initialize dotenv
