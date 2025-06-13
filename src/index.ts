@@ -103,7 +103,14 @@ async function getAccessToken(code: string) {
 }
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Works good and running!");
+  res.json({
+    message: "GitHub OAuth API Server",
+    status: "running",
+    version: "1.0.0",
+    endpoints: {
+      oauth: "/api/oauth-token",
+    },
+  });
 });
 
 app.listen(port, () => {
