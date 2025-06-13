@@ -31,7 +31,14 @@ const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(cors());
+// CORS configuration
+const corsOptions = {
+  origin: FRONTEND_URL,
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.post("/api/oauth-token", async (req: Request, res: Response) => {
