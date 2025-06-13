@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import axios from "axios";
+import cors from "cors";
 import dotenv from "dotenv";
 
 // Initialize dotenv
@@ -7,7 +8,6 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3001;
-const cors = require("cors");
 
 app.use(cors());
 app.use(express.json());
