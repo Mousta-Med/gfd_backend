@@ -22,6 +22,12 @@ if (missingVars.length > 0) {
 
 console.log("✅ Environment variables validated successfully");
 
+// Configuration constants
+const REDIRECT_URI =
+  process.env.GITHUB_REDIRECT_URI ||
+  "http://localhost:3000/integrations/github/oauth2/callback";
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -56,7 +62,7 @@ async function getAccessToken(code: string) {
         client_id: process.env.GITHUB_CLIENT_ID,
         client_secret: process.env.GITHUB_CLIENT_SECRET,
         code: code,
-        redirect_uri: `http://localhost:3000/integrations/github/oauth2/callback`,
+        redirect_uri: REDIRECT_URI,
       },
       {
         headers: {
