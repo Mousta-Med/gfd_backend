@@ -6,6 +6,22 @@ import dotenv from "dotenv";
 // Initialize dotenv
 dotenv.config();
 
+// Validate required environment variables
+const requiredEnvVars = ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"];
+const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  console.error(
+    `❌ Missing required environment variables: ${missingVars.join(", ")}`
+  );
+  console.error(
+    "Please check your .env file and ensure all required variables are set."
+  );
+  process.exit(1);
+}
+
+console.log("✅ Environment variables validated successfully");
+
 const app = express();
 const port = process.env.PORT || 3001;
 
