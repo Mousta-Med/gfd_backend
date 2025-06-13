@@ -15,8 +15,17 @@ app.use(express.json());
 app.post("/api/oauth-token", async (req: Request, res: Response) => {
   try {
     let { code } = req.body;
-    const token = await getAccessToken(code);
-    res.status(200).json({ access_token: token });
+
+    // Basic input validation
+    if (!code || typeof code !== "string" || code.trim() === "") {
+      res.status(400).json({
+        error: "Invalid request",
+        message: "Code parameter is required",
+      });
+    } else {
+      const token = await getAccessToken(code);
+      res.status(200).json({ access_token: token });
+    }
   } catch (error) {
     console.error("OAuth error:", error);
     res.status(500).json({ error: "Failed to obtain access token" });
