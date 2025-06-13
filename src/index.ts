@@ -49,22 +49,36 @@ app.post("/api/oauth-token", async (req: Request, res: Response) => {
 });
 
 async function getAccessToken(code: string) {
-  const res = await axios.post(
-    "https://github.com/login/oauth/access_token",
-    {
-      client_id: process.env.GITHUB_CLIENT_ID,
-      client_secret: process.env.GITHUB_CLIENT_SECRET,
-      code: code,
-      redirect_uri: `http://localhost:3000/integrations/github/oauth2/callback`,
-    },
-    {
-      headers: {
-        Accept: "application/json",
+  try {
+    const res = await axios.post(
+      "https://github.com/login/oauth/access_token",
+      {
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code: code,
+        redirect_uri: `http://localhost:3000/integrations/github/oauth2/callback`,
       },
-    }
-  );
+      {
+        headers: {
+          Accept: "application/json",
+        },
+        timeout: 10000, // 10 second timeout
+      }
+    );
 
-  return res.data.access_token;
+    // Check if we received an access token
+    if (!res.data.access_token) {
+      throw new Error("No access token received from GitHub");
+    }
+
+    return res.data.access_token;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("GitHub API error:", error.response?.data || error.message);
+      throw new Error("GitHub authentication failed");
+    }
+    throw error;
+  }
 }
 
 app.get("/", (req: Request, res: Response) => {
