@@ -41,13 +41,40 @@ if (process.env.NODE_ENV !== "production") {
   logger.add(
     new winston.transports.Console({
       format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple(),
+        winston.format.colorize({
+          all: true,
+          colors: {
+            error: "red",
+            warn: "yellow",
+            info: "cyan",
+            debug: "green",
+          },
+        }),
+        winston.format.timestamp({
+          format: "HH:mm:ss",
+        }),
         winston.format.printf(
           ({ timestamp, level, message, service, ...meta }) => {
-            return `${timestamp} [${service}] ${level}: ${message} ${
-              Object.keys(meta).length ? JSON.stringify(meta) : ""
-            }`;
+            // Add symbols for different log levels
+            const symbols = {
+              error: "❌",
+              warn: "⚠️ ",
+              info: "🔵",
+              debug: "🐛",
+            };
+
+            // Get the symbol for the current level (remove color codes for matching)
+            const levelKey = level.replace(/\x1b\[[0-9;]*m/g, "").toLowerCase();
+            const symbol = symbols[levelKey as keyof typeof symbols] || "📝";
+
+            // Format metadata nicely if it exists
+            const metaStr = Object.keys(meta).length
+              ? `\n   📋 ${JSON.stringify(meta, null, 2)
+                  .split("\n")
+                  .join("\n   ")}`
+              : "";
+
+            return `${symbol} ${timestamp} [${service}] ${level}: ${message}${metaStr}`;
           }
         )
       ),
