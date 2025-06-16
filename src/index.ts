@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 import axios from "axios";
 import cors from "cors";
 import dotenv from "dotenv";
+import morgan from "morgan";
+import { logger, logStream } from "./utils/logger";
 
 // Initialize dotenv
 dotenv.config();
@@ -11,16 +13,15 @@ const requiredEnvVars = ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"];
 const missingVars = requiredEnvVars.filter((varName) => !process.env[varName]);
 
 if (missingVars.length > 0) {
-  console.error(
-    `❌ Missing required environment variables: ${missingVars.join(", ")}`
-  );
-  console.error(
-    "Please check your .env file and ensure all required variables are set."
-  );
+  logger.error("Missing required environment variables", {
+    missingVars,
+    message:
+      "Please check your .env file and ensure all required variables are set.",
+  });
   process.exit(1);
 }
 
-console.log("✅ Environment variables validated successfully");
+logger.info("Environment variables validated successfully");
 
 // Configuration constants
 const REDIRECT_URI =
@@ -40,6 +41,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// HTTP request logging
+app.use(morgan("combined", { stream: logStream }));
 
 // Basic security headers
 app.use((req, res, next) => {
@@ -64,7 +68,10 @@ app.post("/api/oauth-token", async (req: Request, res: Response) => {
       res.status(200).json({ access_token: token });
     }
   } catch (error) {
-    console.error("OAuth error:", error);
+    logger.error("OAuth error occurred", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     res.status(500).json({ error: "Failed to obtain access token" });
   }
 });
@@ -95,9 +102,18 @@ async function getAccessToken(code: string) {
     return res.data.access_token;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.error("GitHub API error:", error.response?.data || error.message);
+      logger.error("GitHub API error", {
+        error: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+      });
       throw new Error("GitHub authentication failed");
     }
+    logger.error("Unexpected error in getAccessToken", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     throw error;
   }
 }
@@ -114,5 +130,9 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running at : http://localhost:${port}`);
+  logger.info("Server started successfully", {
+    port,
+    environment: process.env.NODE_ENV || "development",
+    url: `http://localhost:${port}`,
+  });
 });
