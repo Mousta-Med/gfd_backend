@@ -4,6 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import morgan from "morgan";
 import { logger, logStream } from "./utils/logger";
+import { generalLimiter, oauthLimiter, healthCheckLimiter } from "./middleware/rateLimiter";
 
 // Initialize dotenv
 dotenv.config();
@@ -53,7 +54,10 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post("/api/oauth-token", async (req: Request, res: Response) => {
+// General rate limiting for all requests
+app.use(generalLimiter);
+
+app.post("/api/oauth-token", oauthLimiter, async (req: Request, res: Response) => {
   try {
     let { code } = req.body;
 
@@ -118,7 +122,7 @@ async function getAccessToken(code: string) {
   }
 }
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/", healthCheckLimiter, (req: Request, res: Response) => {
   res.json({
     message: "GitHub OAuth API Server",
     status: "running",
