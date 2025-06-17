@@ -3,6 +3,7 @@ import axios from "axios";
 import cors from "cors";
 import dotenv from "dotenv";
 import morgan from "morgan";
+import helmet from "helmet";
 import { logger, logStream } from "./utils/logger";
 import { generalLimiter, oauthLimiter, healthCheckLimiter } from "./middleware/rateLimiter";
 
@@ -46,13 +47,8 @@ app.use(express.json());
 // HTTP request logging
 app.use(morgan("combined", { stream: logStream }));
 
-// Basic security headers
-app.use((req, res, next) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("X-XSS-Protection", "1; mode=block");
-  next();
-});
+// Helmet's comprehensive security middleware
+app.use(helmet());
 
 // General rate limiting for all requests
 app.use(generalLimiter);
