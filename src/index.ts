@@ -5,7 +5,11 @@ import dotenv from "dotenv";
 import morgan from "morgan";
 import helmet from "helmet";
 import { logger, logStream } from "./utils/logger";
-import { generalLimiter, oauthLimiter, healthCheckLimiter } from "./middleware/rateLimiter";
+import {
+  generalLimiter,
+  oauthLimiter,
+  healthCheckLimiter,
+} from "./middleware/rateLimiter";
 
 // Initialize dotenv
 dotenv.config();
@@ -26,10 +30,8 @@ if (missingVars.length > 0) {
 logger.info("Environment variables validated successfully");
 
 // Configuration constants
-const REDIRECT_URI =
-  process.env.GITHUB_REDIRECT_URI ||
-  "http://localhost:3000/integrations/github/oauth2/callback";
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
+const REDIRECT_URI = process.env.GITHUB_REDIRECT_URI;
+const FRONTEND_URL = "https://happy-dune-07a825b03.6.azurestaticapps.net/";
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -53,28 +55,32 @@ app.use(helmet());
 // General rate limiting for all requests
 app.use(generalLimiter);
 
-app.post("/api/oauth-token", oauthLimiter, async (req: Request, res: Response) => {
-  try {
-    let { code } = req.body;
+app.post(
+  "/api/oauth-token",
+  oauthLimiter,
+  async (req: Request, res: Response) => {
+    try {
+      let { code } = req.body;
 
-    // Basic input validation
-    if (!code || typeof code !== "string" || code.trim() === "") {
-      res.status(400).json({
-        error: "Invalid request",
-        message: "Code parameter is required",
+      // Basic input validation
+      if (!code || typeof code !== "string" || code.trim() === "") {
+        res.status(400).json({
+          error: "Invalid request",
+          message: "Code parameter is required",
+        });
+      } else {
+        const token = await getAccessToken(code);
+        res.status(200).json({ access_token: token });
+      }
+    } catch (error) {
+      logger.error("OAuth error occurred", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
       });
-    } else {
-      const token = await getAccessToken(code);
-      res.status(200).json({ access_token: token });
+      res.status(500).json({ error: "Failed to obtain access token" });
     }
-  } catch (error) {
-    logger.error("OAuth error occurred", {
-      error: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    });
-    res.status(500).json({ error: "Failed to obtain access token" });
   }
-});
+);
 
 async function getAccessToken(code: string) {
   try {
