@@ -136,9 +136,11 @@ app.get("/", healthCheckLimiter, (req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  logger.info("Server started successfully", {
-    port,
-    environment: process.env.NODE_ENV || "development",
-    url: `http://localhost:${port}`,
-  });
+  const startupMessage = `
+🚀 Server started successfully!
+📍 Port: ${port}
+🌍 Environment: ${process.env.NODE_ENV || "development"}
+🔗 URL: http://localhost:${port}
+  `.trim();
+  logger.info(startupMessage);
 });
